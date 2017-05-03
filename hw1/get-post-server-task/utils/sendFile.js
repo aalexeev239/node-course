@@ -1,26 +1,31 @@
-function sendFile(file, res) {
-    file.pipe(res);
+const HttpStatus = require('http-status-codes');
+const {LIMIT_FILE_SIZE} = require('../config');
 
-    file.on('error', function (err) {
-        res.statusCode = 500;
-        res.end("Server Error");
+function sendFile(fileStream, res) {
+    fileStream.pipe(res);
+
+    fileStream.on('error', function (err) {
+        res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
         console.error(err);
+        return;
     });
 
-    file
+    let size = 0;
+
+    fileStream
         .on('data', (chunk) => {
-            console.log('--- chunk', chunk.length);
-        })
-        .on('open', () => {
-            console.log("open");
-        })
-        .on('close', () => {
-            console.log("close");
+            size += chunk.length;
+            if (size > LIMIT_FILE_SIZE) {
+                fileStream.destroy();
+                // [ВОПРОС]: прекрасно, а дальше что?
+            }
         });
 
-    res.on('close', () => {
-        file.destroy();
-    });
+    res
+        .on('close', () => {
+            fileStream.destroy();
+        });
 }
 
 module.exports = sendFile;

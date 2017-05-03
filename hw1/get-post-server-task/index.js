@@ -30,19 +30,41 @@
 
 'use strict';
 
+// core
 const url = require('url');
 const fs = require('fs');
+const path = require('path');
+const http = require('http');
+// deps
 const mime = require('mime');
 const HttpStatus = require('http-status-codes');
+// custom
 const ErrorCode = require('./utils/ErrorCode');
 const sendFile = require('./utils/sendFile');
 
-const server = require('http').createServer((req, res) => {
+const FILE_ROOT = path.join(__dirname, 'files/');
 
-    const pathname = decodeURI(url.parse(req.url).pathname);
+const server = http.createServer((req, res) => {
+
+    let pathname;
+
+    try {
+        pathname = decodeURIComponent(url.parse(req.url).pathname);
+    } catch (error) {
+        res.statusCode = HttpStatus.BAD_REQUEST;
+        res.end(HttpStatus.getStatusText(HttpStatus.BAD_REQUEST));
+        return;
+    }
 
     switch (req.method) {
         case 'GET':
+            // 0 byte
+            if (~pathname.indexOf('\0')) {
+                res.statusCode = HttpStatus.BAD_REQUEST;
+                res.end(HttpStatus.getStatusText(HttpStatus.BAD_REQUEST));
+                return;
+            }
+
             if (pathname == '/') {
                 const file = new fs.ReadStream(`${__dirname}/public/index.html`);
                 res.setHeader('Content-Type', 'text/html;charset=utf-8');
@@ -56,16 +78,13 @@ const server = require('http').createServer((req, res) => {
                 return;
             }
 
-            const names = pathname.split('/');
+            const filePath = path.join(FILE_ROOT, pathname);
 
-            if (names.length !== 2) {
-                res.statusCode = HttpStatus.BAD_REQUEST;
-                res.end(HttpStatus.getStatusText(HttpStatus.BAD_REQUEST));
+            if (filePath.indexOf(FILE_ROOT) !== 0) {
+                res.statusCode = HttpStatus.NOT_FOUND;
+                res.end(HttpStatus.getStatusText(HttpStatus.NOT_FOUND));
                 return;
             }
-
-            console.log('--- names[1]', names[1]);
-            const filePath = `${__dirname}/files/${names[1]}`;
 
             fs.open(filePath, 'r', (err, fd) => {
                 if (err) {
