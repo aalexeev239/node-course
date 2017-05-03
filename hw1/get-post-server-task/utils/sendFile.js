@@ -1,6 +1,13 @@
+'use strict';
+
 const HttpStatus = require('http-status-codes');
 const {LIMIT_FILE_SIZE} = require('../config');
 
+/**
+ * Передача файлов
+ * @param {stream.Readable} fileStream поток из файла
+ * @param {http.ServerResponse} res ответ сервера
+ */
 function sendFile(fileStream, res) {
     fileStream.pipe(res);
 

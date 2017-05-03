@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  ЗАДАЧА
  Написать HTTP-сервер для загрузки и получения файлов с использованием ПОТОКОВ
@@ -26,10 +28,6 @@
 
  */
 
-// Пример простого сервера в качестве основы
-
-'use strict';
-
 // core
 const url = require('url');
 const fs = require('fs');
@@ -45,7 +43,6 @@ const sendFile = require('./utils/sendFile');
 const FILE_ROOT = path.join(__dirname, 'files/');
 
 const server = http.createServer((req, res) => {
-
     let pathname;
 
     try {
