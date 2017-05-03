@@ -1,0 +1,17 @@
+{
+  "name": "get-post-server-task",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mime": "^1.3.4"
+  },
+  "dependencies": {
+    "http-status-codes": "^1.1.6"
+  }
+}
