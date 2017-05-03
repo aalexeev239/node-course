@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "google"
+  ],
+  "rules": {
+    "no-console": 0,
+    "max-len": {
+      "code": 120
+    }
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  }
+}
