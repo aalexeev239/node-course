@@ -1,7 +1,8 @@
 'use strict';
 
 let codes = {
-    ENOENT: 'ENOENT'
+    ENOENT: 'ENOENT',
+    EEXIST: 'EEXIST',
 };
 
 module.exports = codes;
