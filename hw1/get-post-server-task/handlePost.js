@@ -40,7 +40,7 @@ function handlePost(pathname, req, res) {
         }
 
 
-        const fileStream = fs.createWriteStream(filePath)
+        const fileStream = fs.createWriteStream(filePath);
 
         req.pipe(fileStream)
             .on('error', function (err) {
@@ -56,15 +56,13 @@ function handlePost(pathname, req, res) {
             .on('data', (chunk) => {
                 size += chunk.length;
 
-                console.log('--- size', size);
                 if (size > LIMIT_FILE_SIZE) {
-                    fileStream.end();
-                    console.log('--- filePath', filePath);
+                    req.unpipe(fileStream);
+
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
                             res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
-                            throw err;
                             return;
                         }
 
