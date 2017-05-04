@@ -51,14 +51,16 @@ function handlePost(pathname, req, res) {
             });
 
         let size = 0;
+        let isSuccess = true;
 
         req
             .on('data', (chunk) => {
                 size += chunk.length;
 
                 if (size > LIMIT_FILE_SIZE) {
+                    // [ВОПРОС] как правильно отписываться?
                     req.unpipe(fileStream);
-
+                    isSuccess = false;
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -71,6 +73,14 @@ function handlePost(pathname, req, res) {
                     });
 
                     return;
+                }
+            });
+
+        req
+            .on('end', () => {
+                if (isSuccess) {
+                    res.statusCode = HttpStatus.OK;
+                    res.end(HttpStatus.getStatusText(HttpStatus.OK));
                 }
             });
     });
