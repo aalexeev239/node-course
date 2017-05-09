@@ -1,13 +1,12 @@
 'use strict';
 
 // core
-const fs = require('fs');
-const path = require('path');
 // deps
 const HttpStatus = require('http-status-codes');
 // custom
-const {FILE_ROOT, LIMIT_FILE_SIZE} = require('./config');
-const ErrorCode = require('./utils/ErrorCode');
+const {FILE_ROOT} = require('./config');
+const getFilePath = require('./utils/getFilePath');
+const receiveFile = require('./utils/receiveFile');
 
 /**
  * Обработка POST-запроса
@@ -23,65 +22,15 @@ const ErrorCode = require('./utils/ErrorCode');
 function handlePost(pathname, req, res) {
     pathname = pathname.indexOf('/') === 1 ? pathname.substr(1) : pathname;
 
-    const filePath = path.join(FILE_ROOT, pathname);
+    const filePath = getFilePath(FILE_ROOT, pathname);
 
-    fs.open(filePath, 'wx', (err, fd) => {
-        if (err) {
-            if (err.code === ErrorCode.EEXIST) {
-                res.statusCode = HttpStatus.CONFLICT;
-                res.end(HttpStatus.getStatusText(HttpStatus.CONFLICT));
-                console.error(`${pathname} already exists`);
-                return;
-            }
+    if (!pathname || !filePath) {
+        res.statusCode = HttpStatus.BAD_REQUEST;
+        res.end(HttpStatus.getStatusText(HttpStatus.BAD_REQUEST));
+        return;
+    }
 
-            throw err;
-        }
-
-
-        const fileStream = fs.createWriteStream(filePath);
-
-        req.pipe(fileStream)
-            .on('error', function (err) {
-                res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-                res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
-                console.error(err);
-                return;
-            });
-
-        let size = 0;
-        let isSuccess = true;
-
-        req
-            .on('data', (chunk) => {
-                size += chunk.length;
-
-                if (size > LIMIT_FILE_SIZE) {
-                    // [ВОПРОС] как правильно отписываться?
-                    req.unpipe(fileStream);
-                    isSuccess = false;
-                    fs.unlink(filePath, (err) => {
-                        if (err) {
-                            res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-                            res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
-                            return;
-                        }
-
-                        res.statusCode = HttpStatus.REQUEST_TOO_LONG;
-                        res.end(HttpStatus.getStatusText(HttpStatus.REQUEST_TOO_LONG));
-                    });
-
-                    return;
-                }
-            });
-
-        req
-            .on('end', () => {
-                if (isSuccess) {
-                    res.statusCode = HttpStatus.OK;
-                    res.end(HttpStatus.getStatusText(HttpStatus.OK));
-                }
-            });
-    });
+    receiveFile(filePath, req, res);
 }
 
 module.exports = handlePost;

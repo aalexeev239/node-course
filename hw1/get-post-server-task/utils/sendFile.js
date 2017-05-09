@@ -4,8 +4,8 @@
 const fs = require('fs');
 // deps
 const mime = require('mime');
-// custom
 const HttpStatus = require('http-status-codes');
+// custom
 const ErrorCode = require('./ErrorCode');
 
 /**
