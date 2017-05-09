@@ -1,14 +1,16 @@
 'use strict';
 
+const path = require('path');
+
 /**
- * @param {string} FILE_ROOT корневой путь
+ * @param {string} fileRoot корневой путь
  * @param {string} pathname путь к файлу
  * @return {string|null} полный путь
  */
-function getFilePath(FILE_ROOT, pathname) {
-    const filePath = path.join(FILE_ROOT, pathname);
+function getFilePath(fileRoot, pathname) {
+    const filePath = path.join(fileRoot, pathname);
 
-    if (filePath.indexOf(FILE_ROOT) !== 0) {
+    if (filePath.indexOf(fileRoot) !== 0) {
         return null;
     }
 

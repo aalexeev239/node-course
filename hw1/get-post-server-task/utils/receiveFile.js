@@ -1,7 +1,7 @@
 'use strict';
 
 // core
-// const example = require('example');
+const fs = require('fs');
 // deps
 const HttpStatus = require('http-status-codes');
 // custom
@@ -18,6 +18,7 @@ function receiveFile(filePath, req, res) {
     if (req.headers['content-length'] > LIMIT_FILE_SIZE) {
         res.statusCode = HttpStatus.REQUEST_TOO_LONG;
         res.end(HttpStatus.getStatusText(HttpStatus.REQUEST_TOO_LONG));
+        return;
     }
 
     let size = 0;
