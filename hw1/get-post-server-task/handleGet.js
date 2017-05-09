@@ -9,6 +9,7 @@ const HttpStatus = require('http-status-codes');
 // custom
 const {FILE_ROOT} = require('./config');
 const ErrorCode = require('./utils/ErrorCode');
+const getFilePath = require('./utils/getFilePath');
 const sendFile = require('./utils/sendFile');
 
 
@@ -29,9 +30,7 @@ function handleGet(pathname, res) {
     }
 
     if (pathname == '/') {
-        const file = new fs.ReadStream(`${__dirname}/public/index.html`);
-        res.setHeader('Content-Type', 'text/html;charset=utf-8');
-        sendFile(file, res);
+        sendFile(`${__dirname}/public/index.html`, res);
         return;
     }
 
@@ -41,35 +40,15 @@ function handleGet(pathname, res) {
         return;
     }
 
-    const filePath = path.join(FILE_ROOT, pathname);
+    const filePath = getFilePath(FILE_ROOT, pathname);
 
-    if (filePath.indexOf(FILE_ROOT) !== 0) {
+    if (!filePath) {
         res.statusCode = HttpStatus.NOT_FOUND;
         res.end(HttpStatus.getStatusText(HttpStatus.NOT_FOUND));
         return;
     }
 
-    fs.open(filePath, 'r', (err, fd) => {
-        if (err) {
-            if (err.code === ErrorCode.ENOENT) {
-                res.statusCode = HttpStatus.BAD_REQUEST;
-                res.end(HttpStatus.getStatusText(HttpStatus.BAD_REQUEST));
-                console.error(err);
-                return;
-            }
-
-            res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-            res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
-            // [ВОПРОС] а как правильно ловить дальше?
-            console.error(err);
-            throw err;
-        }
-
-        res.setHeader('Content-Type', mime.lookup(filePath));
-        const file = new fs.ReadStream(filePath);
-        sendFile(file, res);
-        return;
-    });
+    sendFile(filePath, res);
 }
 
 module.exports = handleGet;

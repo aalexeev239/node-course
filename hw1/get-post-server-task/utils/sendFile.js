@@ -1,32 +1,41 @@
 'use strict';
 
+// core
+const fs = require('fs');
+// deps
+const mime = require('mime');
+// custom
 const HttpStatus = require('http-status-codes');
-const {LIMIT_FILE_SIZE} = require('../config');
+const ErrorCode = require('./ErrorCode');
 
 /**
  * Передача файлов
- * @param {stream.Readable} fileStream поток из файла
+ * @param {string} filepath путь к файлу
  * @param {http.ServerResponse} res ответ сервера
  */
-function sendFile(fileStream, res) {
+function sendFile(filepath, res) {
+    let fileStream = fs.createReadStream(filepath);
     fileStream.pipe(res);
 
-    fileStream.on('error', function (err) {
-        res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-        res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
-        console.error(err);
-        return;
-    });
-
-    let size = 0;
-
     fileStream
-        .on('data', (chunk) => {
-            size += chunk.length;
-            if (size > LIMIT_FILE_SIZE) {
-                fileStream.destroy();
-                // [ВОПРОС]: прекрасно, а дальше что?
+        .on('error', (err) => {
+            if (err.code === ErrorCode.ENOENT) {
+                res.statusCode = HttpStatus.NOT_FOUND;
+                res.end(HttpStatus.getStatusText(HttpStatus.NOT_FOUND));
+                return;
             }
+
+            console.error(err);
+
+            if (!res.headersSent) {
+                res.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+                res.end(HttpStatus.getStatusText(HttpStatus.INTERNAL_SERVER_ERROR));
+            } else {
+                res.end();
+            }
+        })
+        .on('open', () => {
+            res.setHeader('Content-Type', mime.lookup(filepath));
         });
 
     res

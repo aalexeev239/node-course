@@ -25,8 +25,6 @@ function handlePost(pathname, req, res) {
 
     const filePath = path.join(FILE_ROOT, pathname);
 
-    console.log('--- filepath', filePath);
-
     fs.open(filePath, 'wx', (err, fd) => {
         if (err) {
             if (err.code === ErrorCode.EEXIST) {
