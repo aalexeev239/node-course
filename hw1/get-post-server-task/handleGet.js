@@ -1,14 +1,10 @@
 'use strict';
 
 // core
-const fs = require('fs');
-const path = require('path');
 // deps
-const mime = require('mime');
 const HttpStatus = require('http-status-codes');
 // custom
 const {FILE_ROOT} = require('./config');
-const ErrorCode = require('./utils/ErrorCode');
 const getFilePath = require('./utils/getFilePath');
 const sendFile = require('./utils/sendFile');
 
